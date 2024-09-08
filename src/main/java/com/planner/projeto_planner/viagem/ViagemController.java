@@ -3,10 +3,9 @@ package com.planner.projeto_planner.viagem;
 import com.planner.projeto_planner.participante.ParticipanteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/trips") // Define a URL base para o controlador
@@ -28,6 +27,14 @@ public class ViagemController {
         this.participanteService.registrarParticipantesNoEvent(payload.emails_to_invite(), newViagem.getId());
 
         return  ResponseEntity.ok(new ViagemCreatResponse(newViagem.getId()));
-    }
 
+    }
+    @GetMapping("/{id}") // Define o método para lidar com requisições GET na URL "/trips/{id}"
+    public ResponseEntity<Viagem> getViagemDetalhes(@PathVariable UUID id) {
+        // Busca a viagem no banco de dados pelo ID
+        return viagemRepository.findById(id)
+                .map(viagem -> ResponseEntity.ok(viagem)) // Retorna a viagem encontrada
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Retorna 404 se a viagem não for encontrad
+
+    }
 }

@@ -33,7 +33,6 @@ public class Viagem {
 
      @Column(name = "is_confirmed", nullable = false)
      private Boolean isConfirmed; // está confirmado (true/false)
-
      @Column(name = "owner_name", nullable = false)
      private String ownerName; // nome do proprietário
 
