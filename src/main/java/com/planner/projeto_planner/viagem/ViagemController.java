@@ -20,14 +20,14 @@ public class ViagemController {
 
 
     @PostMapping // Define o método para lidar com requisições POST na URL "/trips"
-    public ResponseEntity<String> createViagem(@RequestBody ViagemRequestPayload payload) {
+    public ResponseEntity<ViagemCreatResponse> createViagem(@RequestBody ViagemRequestPayload payload) {
 
         Viagem newViagem = new Viagem(payload);  // aqui de inicio vai da um erro pois não tem um construtor no meu objeto viagem
 
         this.viagemRepository.save(newViagem); // AQUI VAI DEFENIR QUAL É A VIAGEM QUE EU QUERO SALVAR NO BANCO DE DADOS
         this.participanteService.registrarParticipantesNoEvent(payload.emails_to_invite(), newViagem.getId());
 
-        return  ResponseEntity.ok("Sucesso!");
+        return  ResponseEntity.ok(new ViagemCreatResponse(newViagem.getId()));
     }
 
 }
