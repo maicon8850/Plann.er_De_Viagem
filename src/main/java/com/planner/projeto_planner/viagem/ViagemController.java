@@ -5,36 +5,62 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/trips") // Define a URL base para o controlador
+@RequestMapping("/tri ps") // Define a URL base para o controlador
 public class ViagemController {
 
-    @Autowired // notação para o spring fazer a ingeção de dependencia para mim
+    @Autowired // Notação para o Spring fazer a injeção de dependência
     private ParticipanteService participanteService;
 
     @Autowired
-    private ViagemRepository viagemRepository;
-
+    private ViagemRepository repository; // Repositório de viagens para interagir com o banco de dados
 
     @PostMapping // Define o método para lidar com requisições POST na URL "/trips"
     public ResponseEntity<ViagemCreatResponse> createViagem(@RequestBody ViagemRequestPayload payload) {
 
-        Viagem newViagem = new Viagem(payload);  // aqui de inicio vai da um erro pois não tem um construtor no meu objeto viagem
+        Viagem newViagem = new Viagem(payload); // Construtor da classe Viagem que aceita ViagemRequestPayload
 
-        this.viagemRepository.save(newViagem); // AQUI VAI DEFENIR QUAL É A VIAGEM QUE EU QUERO SALVAR NO BANCO DE DADOS
+        this.repository.save(newViagem); // Salva a nova viagem no banco de dados
         this.participanteService.registrarParticipantesNoEvent(payload.emails_to_invite(), newViagem.getId());
+        // Registra participantes no evento passando uma lista de e-mails e o ID da nova viagem
 
-        return  ResponseEntity.ok(new ViagemCreatResponse(newViagem.getId()));
+        return ResponseEntity.ok(new ViagemCreatResponse(newViagem.getId()));
+        // Retorna o ID da viagem recém-criada encapsulado em ViagemCreatResponse
 
     }
+
     @GetMapping("/{id}") // Define o método para lidar com requisições GET na URL "/trips/{id}"
     public ResponseEntity<Viagem> getViagemDetalhes(@PathVariable UUID id) {
         // Busca a viagem no banco de dados pelo ID
-        return viagemRepository.findById(id)
-                .map(viagem -> ResponseEntity.ok(viagem)) // Retorna a viagem encontrada
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Retorna 404 se a viagem não for encontrad
+        Optional<Viagem> viagem = this.repository.findById(id);
 
+        return viagem.map(ResponseEntity::ok) // Se a viagem for encontrada, retorna com status 200 (OK)
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Se não for encontrada, retorna 404 (Not Found)
+    }
+
+    @PutMapping("/{id}") // Define o método para lidar com requisições PUT na URL "/trips/{id}"
+    public ResponseEntity<Viagem> updateViagem(@PathVariable UUID id, @RequestBody ViagemRequestPayload payload) {
+        // Busca a viagem no banco de dados pelo ID
+        Optional<Viagem> viagem = this.repository.findById(id);
+
+        if (viagem.isPresent()) {
+            Viagem cruaViagem = viagem.get(); // Obtém o objeto Viagem do Optional
+
+            // Corrige o método de parse de LocalDateTime e separa o parâmetro com vírgula
+            cruaViagem.setEndsAt(LocalDateTime.parse(payload.ends_at(), DateTimeFormatter.ISO_DATE_TIME));
+            cruaViagem.setStartsAt(LocalDateTime.parse(payload.starts_at(), DateTimeFormatter.ISO_DATE_TIME));
+            cruaViagem.setDestination(payload.destination());
+
+            this.repository.save(cruaViagem); // Salva as alterações no banco de dados
+
+            return ResponseEntity.ok(cruaViagem); // Retorna o objeto atualizado com status 200 (OK)
+        }
+
+        return ResponseEntity.notFound().build(); // Se não for encontrada, retorna 404 (Not Found)
     }
 }
