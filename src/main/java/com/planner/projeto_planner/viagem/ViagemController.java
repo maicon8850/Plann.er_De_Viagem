@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/tri ps") // Define a URL base para o controlador
+@RequestMapping("/trips") // Define a URL base para o controlador
 public class ViagemController {
 
     @Autowired // Notação para o Spring fazer a injeção de dependência
@@ -55,6 +55,23 @@ public class ViagemController {
             cruaViagem.setEndsAt(LocalDateTime.parse(payload.ends_at(), DateTimeFormatter.ISO_DATE_TIME));
             cruaViagem.setStartsAt(LocalDateTime.parse(payload.starts_at(), DateTimeFormatter.ISO_DATE_TIME));
             cruaViagem.setDestination(payload.destination());
+
+            this.repository.save(cruaViagem); // Salva as alterações no banco de dados
+
+            return ResponseEntity.ok(cruaViagem); // Retorna o objeto atualizado com status 200 (OK)
+        }
+
+        return ResponseEntity.notFound().build(); // Se não for encontrada, retorna 404 (Not Found)
+    }
+
+    @GetMapping("/{id}/confirm") // Define o método para lidar com requisições GET na URL "/trips/{id}/confirm"
+    public ResponseEntity<Viagem> confirmViagem(@PathVariable UUID id) {
+        // Busca a viagem no banco de dados pelo ID
+        Optional<Viagem> viagem = this.repository.findById(id);
+
+        if (viagem.isPresent()) {
+            Viagem cruaViagem = viagem.get(); // Obtém o objeto Viagem do Optional
+            cruaViagem.setConfirmed(true); // Atualiza o status de confirmação para verdadeiro
 
             this.repository.save(cruaViagem); // Salva as alterações no banco de dados
 

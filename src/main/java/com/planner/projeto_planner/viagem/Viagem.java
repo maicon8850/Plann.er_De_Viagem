@@ -47,4 +47,13 @@ public class Viagem {
           this.startsAt = LocalDateTime.parse(data.starts_at(), DateTimeFormatter.ISO_DATE_TIME);
           this.endsAt = LocalDateTime.parse(data.ends_at(), DateTimeFormatter.ISO_DATE_TIME); // corrigido para usar ends_at
      }
+     // Método para definir o status de confirmação
+     public void setConfirmed(Boolean isConfirmed) {
+          this.isConfirmed = isConfirmed;
+     }
+
+     // Método para obter o status de confirmação
+     public Boolean getConfirmed() {
+          return isConfirmed;
+     }
 }
